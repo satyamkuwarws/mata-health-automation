@@ -13,7 +13,6 @@ except Exception:  # pragma: no cover
     allure = None
 
 from framework.config.settings import Settings, get_settings
-from framework.pages.login_page import LoginPage
 from framework.utilities.artifacts import safe_filename
 from framework.utilities.logging_utils import configure_logging
 
@@ -61,44 +60,29 @@ def browser(playwright_instance: Playwright, settings: Settings) -> Generator[Br
 
 
 @pytest.fixture(scope="session")
-def storage_state_path(settings: Settings, worker_id: str) -> Path:
-    # One storage state per xdist worker to avoid cross-process file contention.
-    filename = f"storage_state_{safe_filename(worker_id)}.json"
-    return settings.storage_state_dir / filename
+def storage_state_path(settings: Settings) -> Path:
+    return settings.storage_state_path
 
 
 @pytest.fixture(scope="session")
-def authenticated_storage_state(browser: Browser, settings: Settings, storage_state_path: Path) -> Path:
+def authenticated_storage_state(settings: Settings, storage_state_path: Path) -> Path:
     if storage_state_path.exists():
         return storage_state_path
 
-    if not settings.has_real_credentials():
-        raise RuntimeError(
-            "No valid admin credentials found and no storage state exists.\n\n"
-            "Option A (recommended): create `.env` from `.env.example` and set real values for:\n"
-            "  - BASE_URL\n"
-            "  - ADMIN_USERNAME\n"
-            "  - ADMIN_PASSWORD\n\n"
-            "Option B: create a storage state via:\n"
-            "  python3 scripts/save_storage_state.py --base-url \"$BASE_URL\" --out "
-            f"\"{storage_state_path}\"\n"
-        )
+    cmd = (
+        "python3 scripts/save_storage_state.py "
+        f"--base-url \"{settings.base_url}\" "
+        f"--out \"{storage_state_path}\""
+    )
+    if settings.admin_email:
+        cmd += f" --admin-email \"{settings.admin_email}\""
 
-    ctx = browser.new_context(base_url=settings.base_url)
-    page = ctx.new_page()
-    page.set_default_timeout(settings.default_timeout_ms)
-    page.set_default_navigation_timeout(settings.navigation_timeout_ms)
-    expect.set_options(timeout=settings.expect_timeout_ms)
-
-    login = LoginPage(page)
-    login.goto(settings.base_url)
-    login.login(settings.admin_username, settings.admin_password)
-    login.expect_logged_in()
-
-    ctx.storage_state(path=str(storage_state_path))
-    page.close()
-    ctx.close()
-    return storage_state_path
+    raise RuntimeError(
+        "No Playwright storage state found.\n\n"
+        f"Expected: {storage_state_path}\n\n"
+        "This application uses email + OTP. Log in once manually to generate storage state, then rerun tests:\n\n"
+        f"  {cmd}\n"
+    )
 
 
 @pytest.fixture()

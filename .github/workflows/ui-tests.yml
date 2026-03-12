@@ -17,8 +17,10 @@ jobs:
     env:
       # Inject secrets in repo settings; do NOT commit real values.
       BASE_URL: ${{ secrets.BASE_URL }}
-      ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
-      ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+      # For OTP auth, provide a pre-generated Playwright storage state JSON as a secret.
+      # Create it locally via: `python3 scripts/save_storage_state.py ...`
+      # Then copy the JSON contents into this secret.
+      STORAGE_STATE_JSON: ${{ secrets.STORAGE_STATE_JSON }}
       BROWSER: ${{ matrix.browser }}
       HEADLESS: "true"
 
@@ -42,6 +44,12 @@ jobs:
       - name: Run smoke tests (parallel)
         run: |
           mkdir -p reports/allure-results
+          mkdir -p reports/artifacts/storage
+          if [ -z "${STORAGE_STATE_JSON}" ]; then
+            echo "Missing STORAGE_STATE_JSON secret. Generate storage state locally and set it in repo secrets." >&2
+            exit 1
+          fi
+          printf "%s" "${STORAGE_STATE_JSON}" > reports/artifacts/storage/storage_state_master.json
           pytest -m smoke \
             --browser "${{ matrix.browser }}" \
             --reruns 2 --reruns-delay 1 \
