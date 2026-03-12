@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mata-health-ui-automation"
+version = "0.1.0"
+description = "UI automation framework for Mata Health admin portal (Playwright sync + pytest)."
+requires-python = ">=3.11"
+readme = "README.md"
+license = { text = "Proprietary" }
+dependencies = [
+  "pytest>=8.2",
+  "playwright>=1.50",
+  "pydantic-settings>=2.7",
+  "python-dotenv>=1.0",
+  "faker>=30.0",
+  "requests>=2.32",
+  "pytest-xdist>=3.6",
+  "pytest-rerunfailures>=14.0",
+  "allure-pytest>=2.13.5",
+  "pytest-html>=4.1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "ruff>=0.9",
+]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+

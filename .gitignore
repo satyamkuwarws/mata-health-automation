@@ -1,0 +1,17 @@
+.env
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+
+# Reports / artifacts
+reports/
+
+# Playwright
+*.webm
+*.zip
+
