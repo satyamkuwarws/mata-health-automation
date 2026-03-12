@@ -72,6 +72,18 @@ def authenticated_storage_state(browser: Browser, settings: Settings, storage_st
     if storage_state_path.exists():
         return storage_state_path
 
+    if not settings.has_real_credentials():
+        raise RuntimeError(
+            "No valid admin credentials found and no storage state exists.\n\n"
+            "Option A (recommended): create `.env` from `.env.example` and set real values for:\n"
+            "  - BASE_URL\n"
+            "  - ADMIN_USERNAME\n"
+            "  - ADMIN_PASSWORD\n\n"
+            "Option B: create a storage state via:\n"
+            "  python3 scripts/save_storage_state.py --base-url \"$BASE_URL\" --out "
+            f"\"{storage_state_path}\"\n"
+        )
+
     ctx = browser.new_context(base_url=settings.base_url)
     page = ctx.new_page()
     page.set_default_timeout(settings.default_timeout_ms)

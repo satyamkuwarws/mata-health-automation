@@ -36,3 +36,11 @@ testpaths = ["tests"]
 line-length = 110
 target-version = "py311"
 
+[tool.setuptools]
+# Avoid setuptools auto-discovery errors in flat-layout repos.
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["framework*"]
+exclude = ["test_data*", "tests*", "reports*"]
+

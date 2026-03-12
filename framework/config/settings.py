@@ -19,11 +19,12 @@ class Settings(BaseSettings):
 
     env: str = Field(default="local", alias="ENV")
 
-    base_url: str = Field(alias="BASE_URL")
+    base_url: str = Field(default="https://nimble-pasca-24ee4c.netlify.app/admin", alias="BASE_URL")
     api_base_url: str | None = Field(default=None, alias="API_BASE_URL")
 
-    admin_username: str = Field(alias="ADMIN_USERNAME")
-    admin_password: str = Field(alias="ADMIN_PASSWORD")
+    # Defaults are intentionally non-secret placeholders. Override via `.env` or env vars.
+    admin_username: str = Field(default="admin@example.com", alias="ADMIN_USERNAME")
+    admin_password: str = Field(default="change-me", alias="ADMIN_PASSWORD")
 
     browser: Literal["chromium", "firefox", "webkit"] = Field(default="chromium", alias="BROWSER")
     headless: bool = Field(default=True, alias="HEADLESS")
@@ -41,6 +42,12 @@ class Settings(BaseSettings):
 
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")
     log_dir: Path = Field(default=Path("reports/logs"), alias="LOG_DIR")
+
+    def has_real_credentials(self) -> bool:
+        return not (
+            self.admin_username.strip().lower() in {"admin@example.com", "", "changeme", "change-me"}
+            or self.admin_password.strip().lower() in {"changeme", "change-me", ""}
+        )
 
     def ensure_dirs(self) -> None:
         self.artifacts_dir.mkdir(parents=True, exist_ok=True)
